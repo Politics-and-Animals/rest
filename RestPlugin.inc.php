@@ -83,13 +83,11 @@ class RestPlugin extends GatewayPlugin {
 								'description' => $journal->getLocalizedDescription(),
 							);
 
-				echo json_encode($response);
 				break;
 			case 'articleInfo': // Article metadata
 				// Takes article ID as input
 				$articleId = (int) array_shift($args);
 				$response = $this->_getArticleInfo($request, $articleId);
-				echo json_encode($response);
 				break;
 			case 'issueData': // Issue metadata
 				//Takes article ID as input
@@ -97,7 +95,6 @@ class RestPlugin extends GatewayPlugin {
 				$issue =& $issueDao->getIssueById($issueId, $journalId);
 
 				$response = $this->_getIssueInfo($request, $journalId, $issue);
-				echo json_encode($response);
 				break;								
 			case 'issueDataWithArticles': //Issue metadata along with all included article metadata
 				// Takes issue ID as input
@@ -106,19 +103,16 @@ class RestPlugin extends GatewayPlugin {
 				$issue =& $issueDao->getIssueById($issueId, $journalId);
 				
 				$response = $this->_getIssueInfo($request, $journalId, $issue, true);
-				echo json_encode($response);
 				break;
 			case 'currentIssueData': // Current issue metadata
 				$issue =& $issueDao->getCurrentIssue($journalId, true);
 				
 				$response = $this->_getIssueInfo($request, $journalId, $issue);
-				echo json_encode($response);
 				break;
 			case 'currentIssueDataWithArticles': // Current issue metadata along with all included article metadata
 				$issue =& $issueDao->getCurrentIssue($journalId, true);
 				
 				$response = $this->_getIssueInfo($request, $journalId, $issue, true);
-				echo json_encode($response);
 				break;				
 			case 'allIssueData': // Metadata for all published issues
 				$issues =& $issueDao->getPublishedIssues($journalId);
@@ -128,7 +122,6 @@ class RestPlugin extends GatewayPlugin {
 					$response[] = $this->_getIssueInfo($request, $journalId, $issue);
 					unset($issue);
 				}
-				echo json_encode($response);
 				break;
 			case 'allIssueDataWithArticles': // Metadata for all published issues and all their articles (can be big!)
 				$issues =& $issueDao->getPublishedIssues($journalId);
@@ -138,7 +131,6 @@ class RestPlugin extends GatewayPlugin {
 					$response[] = $this->_getIssueInfo($request, $journalId, $issue, true);
 					unset($issue);
 				}
-				echo json_encode($response);
 				break;
 			case 'announcements': // Announcements
 				$announcementDao =& DAORegistry::getDAO('AnnouncementDAO');
@@ -156,12 +148,18 @@ class RestPlugin extends GatewayPlugin {
 					unset($announcement);
 				}
 
-				echo json_encode($response);
 				break;
 			default:
 				// Not a valid request
 				$this->showError();
 		}
+
+		if (isset($response)) {
+			$json = json_encode($response);
+			header('Content-Type: application/json');
+			echo isset($_GET['callback']) ? "{$_GET['callback']}($json)" : $json;
+		}
+
 		return true;
 	}
 
